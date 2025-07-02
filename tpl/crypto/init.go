@@ -60,6 +60,20 @@ func init() {
 			},
 		)
 
+		ns.AddMethodMapping(ctx.AesEncryptCBC,
+			[]string{"aes_enc"},
+			[][2]string{
+				{`{{ aes_enc "Hello world, gophers!" "5TXwnQweXqloveCong@801prCywGrcHT" "jynevMNg4ENvfkWm" }}`, `YkwrWRLSy+XvvtSRg6r+jyCf9ujxZ/YqLW9viMAtUhI=`},
+			},
+		)
+
+		ns.AddMethodMapping(ctx.AesDecryptCBC,
+			[]string{"aes_dec"},
+			[][2]string{
+				{`{{ aes_dec "YkwrWRLSy+XvvtSRg6r+jyCf9ujxZ/YqLW9viMAtUhI=" "5TXwnQweXqloveCong@801prCywGrcHT" "jynevMNg4ENvfkWm" }}`, `Hello world, gophers!`},
+			},
+		)
+
 		return ns
 	}
 

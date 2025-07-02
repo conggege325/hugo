@@ -154,32 +154,40 @@ func _PKCS7UnPadding(unPaddingBytes []byte) []byte {
 	return unPaddingBytes[:(length - unPadding)]
 }
 
-func (ns *Namespace) AesEncryptCBC(originalText string, key string, iv string) string {
+func (ns *Namespace) AesEncryptCBC(originalText string, key string, iv string) (string, error) {
 	originalBytes := []byte(originalText)
 	keyBytes := []byte(key)
 	ivBytes := []byte(iv)
 
-	block, _ := aes.NewCipher(keyBytes)
+	block, err := aes.NewCipher(keyBytes)
+	if err != nil {
+		return "", err
+	}
+
 	blockSize := block.BlockSize()
 	originalBytes = _PKCS7Padding(originalBytes, blockSize)
 	cipherBytes := make([]byte, len(originalBytes))
 
 	blockMode := cipher.NewCBCEncrypter(block, ivBytes[:blockSize])
 	blockMode.CryptBlocks(cipherBytes, originalBytes)
-	return base64.StdEncoding.EncodeToString(cipherBytes)
+	return base64.StdEncoding.EncodeToString(cipherBytes), nil
 }
 
-func (ns *Namespace) AesDecryptCBC(ciphertext string, key string, iv string) string {
+func (ns *Namespace) AesDecryptCBC(ciphertext string, key string, iv string) (string, error) {
 	cipherBytes, _ := base64.StdEncoding.DecodeString(ciphertext)
 	keyBytes := []byte(key)
 	ivBytes := []byte(iv)
 
-	block, _ := aes.NewCipher(keyBytes)
+	block, err := aes.NewCipher(keyBytes)
+	if err != nil {
+		return "", err
+	}
+
 	blockSize := block.BlockSize()
 	originalBytes := make([]byte, len(cipherBytes))
 
 	blockMode := cipher.NewCBCDecrypter(block, ivBytes[:blockSize])
 	blockMode.CryptBlocks(originalBytes, cipherBytes)
 	originalBytes = _PKCS7UnPadding(originalBytes)
-	return string(originalBytes)
+	return string(originalBytes), nil
 }
