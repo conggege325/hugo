@@ -14,6 +14,7 @@
 package crypto
 
 import (
+	"fmt"
 	"testing"
 
 	qt "github.com/frankban/quicktest"
@@ -135,4 +136,15 @@ func TestHMAC(t *testing.T) {
 		c.Assert(err, qt.IsNil, errMsg)
 		c.Assert(result, qt.Equals, test.expect, errMsg)
 	}
+}
+
+func TestAES(t *testing.T) {
+	ns := New()
+	key := "a7gE3fH9jKmN1pQ2rS4tU6vY8zW9xL01"
+	iv := "7hJ3kQxZW45mNpR2"
+	plaintext := "Hello, AES encryption!"
+	ciphertext := ns.AesEncryptCBC(plaintext, key, iv)
+	fmt.Println(ciphertext)
+	originalText := ns.AesDecryptCBC(ciphertext, key, iv)
+	fmt.Println(originalText)
 }

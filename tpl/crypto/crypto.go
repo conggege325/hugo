@@ -15,11 +15,15 @@
 package crypto
 
 import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"hash"
@@ -136,4 +140,46 @@ func (ns *Namespace) HMAC(h any, k any, m any, e ...any) (string, error) {
 	default:
 		return "", fmt.Errorf("%q is not a supported encoding method", encoding)
 	}
+}
+
+func _PKCS7Padding(paddingBytes []byte, blockSize int) []byte {
+	padding := blockSize - len(paddingBytes)%blockSize
+	padText := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(paddingBytes, padText...)
+}
+
+func _PKCS7UnPadding(unPaddingBytes []byte) []byte {
+	length := len(unPaddingBytes)
+	unPadding := int(unPaddingBytes[length-1])
+	return unPaddingBytes[:(length - unPadding)]
+}
+
+func (ns *Namespace) AesEncryptCBC(originalText string, key string, iv string) string {
+	originalBytes := []byte(originalText)
+	keyBytes := []byte(key)
+	ivBytes := []byte(iv)
+
+	block, _ := aes.NewCipher(keyBytes)
+	blockSize := block.BlockSize()
+	originalBytes = _PKCS7Padding(originalBytes, blockSize)
+	cipherBytes := make([]byte, len(originalBytes))
+
+	blockMode := cipher.NewCBCEncrypter(block, ivBytes[:blockSize])
+	blockMode.CryptBlocks(cipherBytes, originalBytes)
+	return base64.StdEncoding.EncodeToString(cipherBytes)
+}
+
+func (ns *Namespace) AesDecryptCBC(ciphertext string, key string, iv string) string {
+	cipherBytes, _ := base64.StdEncoding.DecodeString(ciphertext)
+	keyBytes := []byte(key)
+	ivBytes := []byte(iv)
+
+	block, _ := aes.NewCipher(keyBytes)
+	blockSize := block.BlockSize()
+	originalBytes := make([]byte, len(cipherBytes))
+
+	blockMode := cipher.NewCBCDecrypter(block, ivBytes[:blockSize])
+	blockMode.CryptBlocks(originalBytes, cipherBytes)
+	originalBytes = _PKCS7UnPadding(originalBytes)
+	return string(originalBytes)
 }
