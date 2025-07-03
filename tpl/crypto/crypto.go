@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"hash"
 	"hash/fnv"
+	"strings"
 
 	"github.com/gohugoio/hugo/common/hugo"
 	"github.com/spf13/cast"
@@ -154,7 +155,19 @@ func _PKCS7UnPadding(unPaddingBytes []byte) []byte {
 	return unPaddingBytes[:(length - unPadding)]
 }
 
+func strPad(original string, desiredLength int, paddingChar string) string {
+	paddingCount := desiredLength - len(original) // 计算需要填充的字符数
+	if paddingCount > 0 {
+		return original + strings.Repeat(paddingChar, paddingCount) // 填充字符并拼接
+	} else if paddingCount < 0 {
+		return original[0:desiredLength] // 如果长度足够，则截断
+	}
+	return original
+}
+
 func (ns *Namespace) AesEncryptCBC(originalText string, key string, iv string) (string, error) {
+	key = strPad(key, 32, "0")
+
 	originalBytes := []byte(originalText)
 	keyBytes := []byte(key)
 	ivBytes := []byte(iv)
@@ -174,6 +187,8 @@ func (ns *Namespace) AesEncryptCBC(originalText string, key string, iv string) (
 }
 
 func (ns *Namespace) AesDecryptCBC(ciphertext string, key string, iv string) (string, error) {
+	key = strPad(key, 32, "0")
+
 	cipherBytes, _ := base64.StdEncoding.DecodeString(ciphertext)
 	keyBytes := []byte(key)
 	ivBytes := []byte(iv)

@@ -140,11 +140,11 @@ func TestHMAC(t *testing.T) {
 
 func TestAES(t *testing.T) {
 	ns := New()
-	key := "a7gE3fH9jKmN1pQ2rS4tU6vY8zW9xL01"
+	key := "a7gE3fH9jKmN1pQ2rS4tU6vY"
 	iv := "7hJ3kQxZW45mNpR2"
 	plaintext := "Hello, AES encryption!"
-	ciphertext := ns.AesEncryptCBC(plaintext, key, iv)
+	ciphertext, _ := ns.AesEncryptCBC(plaintext, key, iv)
 	fmt.Println(ciphertext)
-	originalText := ns.AesDecryptCBC(ciphertext, key, iv)
+	originalText, _ := ns.AesDecryptCBC(ciphertext, key, iv)
 	fmt.Println(originalText)
 }
